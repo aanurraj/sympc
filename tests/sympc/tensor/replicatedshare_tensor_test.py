@@ -541,6 +541,7 @@ def test_exception_get_op() -> None:
         ReplicatedSharedTensor.get_op(28, "add")
 
 
+@pytest.mark.order(1)
 @pytest.mark.parametrize("security", ["semi-honest", "malicious"])
 def test_ops_bin_public_xor(get_clients, security) -> None:
     parties = get_clients(3)
