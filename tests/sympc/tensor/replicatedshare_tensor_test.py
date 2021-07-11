@@ -539,3 +539,30 @@ def test_exception_get_op() -> None:
 
     with pytest.raises(ValueError):
         ReplicatedSharedTensor.get_op(28, "add")
+
+
+@pytest.mark.order(1)
+@pytest.mark.parametrize("security", ["semi-honest", "malicious"])
+def test_ops_bin_public_xor(get_clients, security) -> None:
+    parties = get_clients(3)
+    protocol = Falcon(security)
+    session = Session(protocol=protocol, parties=parties)
+    SessionManager.setup_mpc(session)
+    ring_size = 2
+
+    sh = torch.tensor([[0, 1, 0], [1, 0, 1]], dtype=torch.bool)
+    shares = [sh, sh, sh]
+    rst_list = ReplicatedSharedTensor.distribute_shares(
+        shares=shares, session=session, ring_size=ring_size
+    )
+    tensor = MPCTensor(shares=rst_list, session=session)
+    tensor.shape = sh.shape
+
+    secret = ReplicatedSharedTensor.shares_sum(shares, ring_size)
+
+    value = torch.tensor([1], dtype=torch.bool)
+
+    result = operator.xor(tensor, value)
+    expected_res = secret ^ value
+
+    assert (result.reconstruct(decode=False) == expected_res).all()
