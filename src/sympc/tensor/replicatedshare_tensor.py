@@ -290,7 +290,6 @@ class ReplicatedSharedTensor(metaclass=SyMPCTensor):
                 ring_size=x.ring_size,
                 config=x.config,
             )
-
         elif y.session_uuid and x.session_uuid and y.session_uuid != x.session_uuid:
             raise ValueError(
                 f"Session UUIDs did not match {x.session_uuid} {y.session_uuid}"
